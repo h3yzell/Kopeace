@@ -92,45 +92,30 @@ const placeOrder = () => {
 <template>
   <div class="min-h-screen bg-amber-50">
     <!-- Header -->
-    <header class="bg-amber-900 text-white shadow-md">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex justify-between items-center">
-          <h1 class="text-3xl font-bold" style="font-family: 'Playfair Display', serif;">
-            Kopeace
-            <span class="text-amber-200 text-sm ml-2 italic">Premium Coffee</span>
-          </h1>
-          
-          <div class="flex bg-amber-800 rounded-lg overflow-hidden">
-            <button 
-              class="px-4 py-2 transition-colors duration-200 flex items-center"
-              :class="{ 'bg-amber-700 text-white': activeTab === 'menu', 'text-amber-200 hover:bg-amber-700/50': activeTab !== 'menu' }"
-              @click="activeTab = 'menu'"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-              Menu
-            </button>
-            <button 
-              class="px-4 py-2 transition-colors duration-200 flex items-center relative"
-              :class="{ 'bg-amber-700 text-white': activeTab === 'order', 'text-amber-200 hover:bg-amber-700/50': activeTab !== 'order' }"
-              @click="activeTab = 'order'"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              Order
-              <span 
-                v-if="cart.length > 0" 
-                class="absolute -top-1 -right-1 bg-amber-200 text-amber-900 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
-              >
-                {{ cart.length }}
-              </span>
-            </button>
-          </div>
-        </div>
+    <div class="header flex items-center justify-between p-4 bg-white shadow-md">
+      <div class="flex items-center space-x-3">
+        <img src="/kopeace.png" alt="Kopeace Logo" class="h-10 w-10 object-cover rounded-full" />
+        <h1 class="text-2xl font-bold text-brown-800">Kopeace</h1>
       </div>
-    </header>
+      <div class="nav-tabs flex space-x-2">
+        <button 
+          :class="{ 'font-semibold border-b-2 border-brown-600': activeTab === 'menu' }" 
+          class="px-4 py-2 text-brown-600 hover:text-brown-800 transform hover:scale-110 transition-all duration-200 ease-in-out" 
+          @click="activeTab = 'menu'">
+          Menu
+        </button>
+        <button 
+          :class="{ 'font-semibold border-b-2 border-brown-600': activeTab === 'order' }" 
+          class="relative px-4 py-2 text-brown-600 hover:text-brown-800 transform hover:scale-110 transition-all duration-200 ease-in-out" 
+          @click="activeTab = 'order'">
+          Order 
+          <span v-if="cart.length > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {{ cart.length }}
+          </span>
+        </button>
+      </div>
+    </div>
+
 
     <!-- Menu Page -->
     <div v-if="activeTab === 'menu'" class="container mx-auto px-4 py-6">
@@ -184,15 +169,7 @@ const placeOrder = () => {
               <h3 class="text-xl font-semibold text-amber-900">{{ coffee.name }}</h3>
               <p class="text-amber-700 font-medium">RM{{ coffee.price }}</p>
             </div>
-            <button 
-              @click="addToCart(coffee)"
-              class="mt-3 w-full bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium rounded-lg py-2 transition-colors duration-200 flex items-center justify-center shadow-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add to Cart
-            </button>
+            <!-- Removed duplicate Add to Cart button that was here -->
           </div>
         </div>
       </div>
