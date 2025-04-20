@@ -1,255 +1,348 @@
 <script setup>
+import { ref, computed, onMounted } from 'vue';
+import PocketBase from 'pocketbase';
 
-  import {ref,computed, onMounted} from 'vue';
-  import PocketBase from 'pocketbase';
+const pb = new PocketBase('http://127.0.0.1:8090');
 
-  const pb = new PocketBase('http://127.0.0.1:8090');
+const searchQuery = ref('');
+const cart = ref([]);
+const activeTab = ref('menu');
+const paymentMethod = ref('');
 
-  const searchQuery = ref('')
-  const cart = ref([])
-  const activeTab = ref('menu')
-  const paymentMethod = ref('')
+const coffeeList = ref([]);
 
-  const coffeeList = ref([]);
+async function getCoffee() {
+  const records = await pb.collection('kopeace').getFullList();
 
-  async function getCoffee(){
-    const records = await pb.collection('kopeace').getFullList();
+  coffeeList.value = records.map(record => ({
+    name: record.Coffee,
+    price: record.Price,
+    image: record.Picture
+  }));
+}
 
-    coffeeList.value = records.map(record => ({
-      name: record.Coffee,
-      price: record.Price,
-      image: record.Picture
-    }))
-  }
+onMounted(() => {
+  getCoffee();
+});
 
-  onMounted(() => {
-    getCoffee()
-  })
+const filteredCoffeeList = computed(() => {
+  return coffeeList.value.filter(coffee => {
+    return coffee.name.toLowerCase().includes(searchQuery.value.toLowerCase());
+  });
+});
 
-  const filteredCoffeeList = computed(() => {
-    return coffeeList.value.filter(coffee => {
-      return coffee.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    })
-  })
+const totalAmount = computed(() => {
+  return cart.value.reduce((total, item) => {
+    return total + (item.price * item.quantity);
+  }, 0);
+});
 
-  const totalAmount = computed(() => {
-    return cart.value.reduce((total, item) => {
-      return total + (item.price * item.quantity)
-    }, 0)
-  })
-
-  const addToCart = (coffee) => {
-  const existingItem = cart.value.find(item => item.name === coffee.name)
+const addToCart = (coffee) => {
+  const existingItem = cart.value.find(item => item.name === coffee.name);
   
   if (existingItem) {
-    existingItem.quantity++
+    existingItem.quantity++;
   } else {
     cart.value.push({
       name: coffee.name,
       price: coffee.price,
       image: coffee.image,
       quantity: 1
-    })
+    });
   }
-}
+};
 
 const increaseQuantity = (item) => {
-  item.quantity++
-}
+  item.quantity++;
+};
 
 const decreaseQuantity = (item) => {
   if (item.quantity > 1) {
-    item.quantity--
+    item.quantity--;
   } else {
-    removeFromCart(item)
+    removeFromCart(item);
   }
-}
+};
 
 const removeFromCart = (item) => {
-  const index = cart.value.findIndex(cartItem => cartItem.name === item.name)
+  const index = cart.value.findIndex(cartItem => cartItem.name === item.name);
   if (index !== -1) {
-    cart.value.splice(index, 1)
+    cart.value.splice(index, 1);
   }
-}
+};
 
 const placeOrder = () => {
   if (cart.value.length === 0) {
-    alert('Please add items to your cart before placing an order')
-    return
+    alert('Please add items to your cart before placing an order');
+    return;
   }
   
   if (!paymentMethod.value) {
-    alert('Please select a payment method')
-    return
+    alert('Please select a payment method');
+    return;
   }
   
-  alert('Order placed successfully!')
-  cart.value = []
-  paymentMethod.value = ''
-  activeTab.value = 'menu'
-}
+  alert('Order placed successfully!');
+  cart.value = [];
+  paymentMethod.value = '';
+  activeTab.value = 'menu';
+};
 </script>
 
 <template>
-<div class="app-container">
-    <div class="header">
-      <h1>Kopeace</h1>
-      <div class="nav-tabs">
-        <button 
-          :class="{ active: activeTab === 'menu' }" 
-          @click="activeTab = 'menu'">Menu
-        </button>
-        <button 
-          :class="{ active: activeTab === 'order' }" 
-          @click="activeTab = 'order'">
-          Order <span v-if="cart.length > 0" class="cart-badge">{{ cart.length }}</span>
-        </button>
+  <div class="min-h-screen bg-amber-50">
+    <!-- Header -->
+    <header class="bg-amber-900 text-white shadow-md">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-bold" style="font-family: 'Playfair Display', serif;">
+            Kopeace
+            <span class="text-amber-200 text-sm ml-2 italic">Premium Coffee</span>
+          </h1>
+          
+          <div class="flex bg-amber-800 rounded-lg overflow-hidden">
+            <button 
+              class="px-4 py-2 transition-colors duration-200 flex items-center"
+              :class="{ 'bg-amber-700 text-white': activeTab === 'menu', 'text-amber-200 hover:bg-amber-700/50': activeTab !== 'menu' }"
+              @click="activeTab = 'menu'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              Menu
+            </button>
+            <button 
+              class="px-4 py-2 transition-colors duration-200 flex items-center relative"
+              :class="{ 'bg-amber-700 text-white': activeTab === 'order', 'text-amber-200 hover:bg-amber-700/50': activeTab !== 'order' }"
+              @click="activeTab = 'order'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Order
+              <span 
+                v-if="cart.length > 0" 
+                class="absolute -top-1 -right-1 bg-amber-200 text-amber-900 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center"
+              >
+                {{ cart.length }}
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
+    </header>
 
     <!-- Menu Page -->
-    <div v-if="activeTab === 'menu'" class="menu-page">
-      <div class="search-bar">
-        <input type="text" placeholder="Search for coffee" v-model="searchQuery" />
+    <div v-if="activeTab === 'menu'" class="container mx-auto px-4 py-6">
+      <div class="mb-6 max-w-md mx-auto">
+        <div class="relative">
+          <input 
+            type="text" 
+            placeholder="Search for coffee..." 
+            v-model="searchQuery"
+            class="w-full px-4 py-3 rounded-full border-2 border-amber-200 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 bg-white pl-10"
+          />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
       </div>
 
-      <div class="coffee-grid">
-        <div class="coffee-box" v-for="coffee in filteredCoffeeList" :key="coffee.name">
-          <img :src="coffee.image" :alt="coffee.name">
-          <div class="coffee-info">
-            <p class="coffee-name">{{ coffee.name }}</p>
-            <p class="coffee-price">RM{{ coffee.price }}</p>
+      <div v-if="filteredCoffeeList.length === 0" class="text-center py-12">
+        <p class="text-lg text-amber-800">Loading coffee options or no matches found...</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div 
+          v-for="coffee in filteredCoffeeList" 
+          :key="coffee.name"
+          class="bg-white rounded-xl shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-lg"
+        >
+          <div class="relative h-48">
+            <img 
+              :src="coffee.image" 
+              :alt="coffee.name"
+              class="w-full h-full object-cover"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-amber-900/60 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end">
+              <div class="p-4 w-full">
+                <button 
+                  @click="addToCart(coffee)"
+                  class="w-full bg-amber-200 hover:bg-amber-300 text-amber-900 font-medium rounded-lg py-2 transition-colors duration-200 flex items-center justify-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add to Cart
+                </button>
+              </div>
+            </div>
           </div>
-          <button class="add-to-cart" @click="addToCart(coffee)">Add to Cart</button>
+          
+          <div class="p-4">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xl font-semibold text-amber-900">{{ coffee.name }}</h3>
+              <p class="text-amber-700 font-medium">RM{{ coffee.price }}</p>
+            </div>
+            <button 
+              @click="addToCart(coffee)"
+              class="mt-3 w-full bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium rounded-lg py-2 transition-colors duration-200 flex items-center justify-center shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add to Cart
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-  <!-- Order Page -->
-  <div v-if="activeTab === 'order'" class="order-page">
-      <div class="order-section">
-        <h2>Your Order</h2>
-        <div v-if="cart.length === 0" class="empty-cart">
-          <p>Your cart is empty</p>
-          <button @click="activeTab = 'menu'">Browse Menu</button>
-        </div>
-        <div v-else class="cart-items">
-          <div v-for="item in cart" :key="item.name" class="cart-item">
-            <img :src="item.image" :alt="item.name" class="cart-item-image">
-            <div class="cart-item-details">
-              <p class="cart-item-name">{{ item.name }}</p>
-              <p class="cart-item-price">RM{{ item.price }}</p>
+    <!-- Order Page -->
+    <div v-if="activeTab === 'order'" class="container mx-auto px-4 py-6">
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <!-- Cart Section - 3 columns -->
+        <div class="lg:col-span-3 bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-2xl font-semibold text-amber-900 border-b border-amber-100 pb-4 mb-4">Your Order</h2>
+          
+          <div v-if="cart.length === 0" class="text-center py-12">
+            <p class="text-lg text-amber-700 mb-4">Your cart is empty</p>
+            <button 
+              @click="activeTab = 'menu'"
+              class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+            >
+              Browse Menu
+            </button>
+          </div>
+          
+          <div v-else class="space-y-4">
+            <div 
+              v-for="item in cart" 
+              :key="item.name" 
+              class="flex items-center bg-amber-50 rounded-lg overflow-hidden shadow-sm"
+            >
+              <img 
+                :src="item.image" 
+                :alt="item.name" 
+                class="h-20 w-20 object-cover"
+              >
+              
+              <div class="flex-grow p-3">
+                <p class="font-medium text-amber-900">{{ item.name }}</p>
+                <p class="text-sm text-amber-700">RM{{ item.price }}</p>
+              </div>
+              
+              <div class="flex items-center px-3">
+                <div class="flex items-center bg-white rounded-lg border border-amber-200">
+                  <button 
+                    @click="decreaseQuantity(item)"
+                    class="px-3 py-1 text-amber-700 hover:bg-amber-100 transition-colors duration-200"
+                  >
+                    -
+                  </button>
+                  <span class="px-3 py-1 font-medium text-amber-900">{{ item.quantity }}</span>
+                  <button 
+                    @click="increaseQuantity(item)"
+                    class="px-3 py-1 text-amber-700 hover:bg-amber-100 transition-colors duration-200"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              
+              <div class="px-4 font-medium text-amber-900">
+                RM{{ (item.price * item.quantity).toFixed(2) }}
+              </div>
+              
+              <button 
+                @click="removeFromCart(item)"
+                class="p-3 text-amber-500 hover:text-amber-700 transition-colors duration-200"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <div class="quantity-controls">
-              <button @click="decreaseQuantity(item)">-</button>
-              <span>{{ item.quantity }}</span>
-              <button @click="increaseQuantity(item)">+</button>
-            </div>
-            <p class="item-total">RM{{ item.price * item.quantity }}</p>
-            <button class="remove-item" @click="removeFromCart(item)">✕</button>
           </div>
         </div>
-      </div>
-
-      <div v-if="cart.length > 0" class="payment-section">
-        <div class="payment-methods">
-          <h2>Payment Methods</h2>
-          <div class="payment-options">
-            <label>
-              <input type="radio" v-model="paymentMethod" value="cash">
-              Cash
-            </label>
-            <label>
-              <input type="radio" v-model="paymentMethod" value="card">
-              Credit/Debit Card
-            </label>
-            <label>
-              <input type="radio" v-model="paymentMethod" value="ewallet">
-              E-Wallet
-            </label>
+        
+        <!-- Payment Section - 2 columns -->
+        <div v-if="cart.length > 0" class="lg:col-span-2 space-y-6">
+          <!-- Payment Methods -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold text-amber-900 border-b border-amber-100 pb-3 mb-4">Payment Method</h2>
+            
+            <div class="space-y-3">
+              <label class="flex items-center p-3 border border-amber-200 rounded-lg hover:bg-amber-50 cursor-pointer transition-colors duration-200">
+                <input 
+                  type="radio" 
+                  v-model="paymentMethod" 
+                  value="cash"
+                  class="mr-3 text-amber-600 focus:ring-amber-500"
+                >
+                <span class="text-amber-900">Cash</span>
+              </label>
+              
+              <label class="flex items-center p-3 border border-amber-200 rounded-lg hover:bg-amber-50 cursor-pointer transition-colors duration-200">
+                <input 
+                  type="radio" 
+                  v-model="paymentMethod" 
+                  value="card"
+                  class="mr-3 text-amber-600 focus:ring-amber-500"
+                >
+                <span class="text-amber-900">Credit/Debit Card</span>
+              </label>
+              
+              <label class="flex items-center p-3 border border-amber-200 rounded-lg hover:bg-amber-50 cursor-pointer transition-colors duration-200">
+                <input 
+                  type="radio" 
+                  v-model="paymentMethod" 
+                  value="ewallet"
+                  class="mr-3 text-amber-600 focus:ring-amber-500"
+                >
+                <span class="text-amber-900">E-Wallet</span>
+              </label>
+            </div>
           </div>
-        </div>
-
-        <div class="payment-details">
-          <h2>Payment Details</h2>
-          <p>Subtotal: RM{{ totalAmount }}</p>
-          <p>Tax (6%): RM{{ (totalAmount * 0.06).toFixed(2) }}</p>
-          <p class="total-amount">Total Amount: RM{{ (totalAmount * 1.06).toFixed(2) }}</p>
-        </div>
-
-        <div class="order-button">
-          <h2>RM{{ (totalAmount * 1.06).toFixed(2) }}</h2>
-          <button class="place-order" @click="placeOrder">Order Now</button>
+          
+          <!-- Order Summary -->
+          <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold text-amber-900 border-b border-amber-100 pb-3 mb-4">Order Summary</h2>
+            
+            <div class="space-y-2 mb-6">
+              <div class="flex justify-between text-amber-800">
+                <span>Subtotal</span>
+                <span>RM{{ totalAmount.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between text-amber-800">
+                <span>Tax (6%)</span>
+                <span>RM{{ (totalAmount * 0.06).toFixed(2) }}</span>
+              </div>
+              <div class="border-t border-amber-200 pt-2 mt-2 flex justify-between font-medium text-amber-900">
+                <span>Total</span>
+                <span class="text-lg">RM{{ (totalAmount * 1.06).toFixed(2) }}</span>
+              </div>
+            </div>
+            
+            <button 
+              @click="placeOrder"
+              class="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium py-3 rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Place Order - RM{{ (totalAmount * 1.06).toFixed(2) }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
-
+    
+    <!-- Footer -->
+    <footer class="mt-12 py-6 bg-amber-900 text-amber-200">
+      <div class="container mx-auto px-4 text-center">
+        <p>© 2025 Kopeace Coffee Shop | Crafted with love for coffee enthusiasts</p>
+      </div>
+    </footer>
+  </div>
 </template>
-
-<style scoped>
-.coffee-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding: 20px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.coffee-box {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 15px;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-}
-
-.coffee-box:hover {
-  transform: scale(1.05);
-}
-
-.coffee-box img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.coffee-name {
-  margin-top: 10px;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.coffee-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding: 20px;
-}
-
-.coffee-box {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 15px;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.coffee-box img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.coffee-name {
-  margin-top: 10px;
-  font-size: 18px;
-  font-weight: bold;
-}
-</style>
