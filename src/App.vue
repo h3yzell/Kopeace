@@ -39,43 +39,6 @@
 
 
 </template>
-=======
-<template>
-  <h1>Kopeace</h1>
-  <div class="coffee-grid">
-    <div 
-      class="coffee-box" 
-      v-for="(coffee, index) in coffees" 
-      :key="index" 
-      @click="handleClick(coffee.name)">
-      <img :src="coffee.img" :alt="coffee.name" />
-      <p class="coffee-name">{{ coffee.name }}</p>
-    </div>
-  </div>
-</template>
-
-<script>
-export default {
-  data() {
-    return {
-      coffees: [
-      { name: 'Espresso', img: 'https://i.pinimg.com/236x/bc/0c/ff/bc0cffc8b21c24b4b571e98b9ab5da12.jpg' },
-        { name: 'Latte', img: 'https://i.pinimg.com/474x/f0/65/5f/f0655f2737da76be9b4ac435c65e3d9b.jpg' },
-        { name: 'Mocha', img: 'https://i.pinimg.com/236x/33/44/2e/33442e58a74503c7cef4fc437a4ebc8e.jpg'},
-        { name: 'Cappuccino', img: 'https://i.pinimg.com/236x/1b/2d/77/1b2d77ef227d199b5246c13c40fedbd4.jpg' },
-        { name: 'Macchiato', img: 'https://i.pinimg.com/236x/7f/7c/0a/7f7c0a441577459d9a0a01ee28b59cc5.jpg' },
-        { name: 'Americano', img: 'https://i.pinimg.com/474x/6e/d0/a7/6ed0a708dc425ee2208548a5aea27aa9.jpg' }
-      ]
-    };
-  },
-  methods: {
-    handleClick(coffeeName) {
-      alert(You clicked on ${coffeeName}!);
-      // You can also navigate or handle logic here, like opening a detail page
-    }
-  }
-};
-</script>
 
 <style scoped>
 .coffee-grid {
