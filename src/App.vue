@@ -1,20 +1,30 @@
 <script setup>
 
-  import {ref,computed} from 'vue';
+  import {ref,computed, onMounted} from 'vue';
+  import PocketBase from 'pocketbase';
+
+  const pb = new PocketBase('http://127.0.0.1:8090');
 
   const searchQuery = ref('')
   const cart = ref([])
   const activeTab = ref('menu')
   const paymentMethod = ref('')
 
-  const coffeeList = ref([
-    { name: 'Espresso', image: 'https://i.pinimg.com/236x/bc/0c/ff/bc0cffc8b21c24b4b571e98b9ab5da12.jpg', price : 13 },
-    { name: 'Latte', image: 'https://i.pinimg.com/474x/f0/65/5f/f0655f2737da76be9b4ac435c65e3d9b.jpg', price : 13}, 
-    { name: 'Cappuccino', image: 'https://i.pinimg.com/236x/33/44/2e/33442e58a74503c7cef4fc437a4ebc8e.jpg', price : 14 },
-    { name: 'Mocha', image: 'https://i.pinimg.com/236x/1b/2d/77/1b2d77ef227d199b5246c13c40fedbd4.jpg', price : 12 },
-    { name: 'Caramel Macchiato', image: 'https://i.pinimg.com/236x/7f/7c/0a/7f7c0a441577459d9a0a01ee28b59cc5.jpg', price : 11 },
-    { name: 'Chocolate Hazelnut', image: 'https://i.pinimg.com/474x/6e/d0/a7/6ed0a708dc425ee2208548a5aea27aa9.jpg', price : 15 },
-  ]);
+  const coffeeList = ref([]);
+
+  async function getCoffee(){
+    const records = await pb.collection('kopeace').getFullList();
+
+    coffeeList.value = records.map(record => ({
+      name: record.Coffee,
+      price: record.Price,
+      image: record.Picture
+    }))
+  }
+
+  onMounted(() => {
+    getCoffee()
+  })
 
   const filteredCoffeeList = computed(() => {
     return coffeeList.value.filter(coffee => {
