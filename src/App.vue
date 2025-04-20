@@ -17,8 +17,8 @@
 
     coffeeList.value = records.map(record => ({
       name: record.Coffee,
-      price: record.Price,
-      image: record.Picture
+      price: record.price,
+      image: record.picture
     }))
   }
 
@@ -91,101 +91,146 @@ const placeOrder = () => {
 </script>
 
 <template>
-<div class="app-container">
-    <div class="header">
-      <h1>Kopeace</h1>
-      <div class="nav-tabs">
-        <button 
-          :class="{ active: activeTab === 'menu' }" 
-          @click="activeTab = 'menu'">Menu
-        </button>
-        <button 
-          :class="{ active: activeTab === 'order' }" 
-          @click="activeTab = 'order'">
-          Order <span v-if="cart.length > 0" class="cart-badge">{{ cart.length }}</span>
-        </button>
+  <div class="min-h-screen bg-[#f7f2ee] font-sans text-[#3e2723]">
+    <link rel="icon" type="image/png" href="/kopeace.png" />
+
+<!-- Header -->
+<div class="header flex items-center justify-between p-4 bg-white shadow-md">
+  <div class="flex items-center space-x-3">
+    <img src="/kopeace.png" alt="Kopeace Logo" class="h-10 w-10 object-cover rounded-full" />
+    <h1 class="text-2xl font-bold text-brown-800">Kopeace</h1>
+  </div>
+
+  <div class="nav-tabs flex space-x-2">
+    <button 
+      :class="{ 'font-semibold border-b-2 border-brown-600': activeTab === 'menu' }" 
+      class="px-4 py-2 text-brown-600 hover:text-brown-800" 
+      @click="activeTab = 'menu'">
+      Menu
+    </button>
+    <button 
+      :class="{ 'font-semibold border-b-2 border-brown-600': activeTab === 'order' }" 
+      class="relative px-4 py-2 text-brown-600 hover:text-brown-800" 
+      @click="activeTab = 'order'">
+      Order 
+      <span v-if="cart.length > 0" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+        {{ cart.length }}
+      </span>
+    </button>
+  </div>
+</div>
+
+
+
+
+    <!-- Menu Page -->
+    <div v-if="activeTab === 'menu'" class="p-6">
+      <div class="max-w-md mx-auto mb-6">
+        <input 
+          type="text" 
+          placeholder="Search your brew..." 
+          v-model="searchQuery"
+          class="w-full px-4 py-2 rounded-full border border-[#bcaaa4] bg-white placeholder-[#8d6e63] focus:ring-2 focus:ring-[#6d4c41]"
+        />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div 
+          v-for="coffee in filteredCoffeeList" 
+          :key="coffee.name"
+          class="bg-white rounded-xl shadow-md overflow-hidden transition hover:scale-105"
+        >
+          <img :src="coffee.image" :alt="coffee.name" class="h-48 w-full object-cover">
+          <div class="p-4 text-center">
+            <h2 class="text-xl font-semibold">{{ coffee.name }}</h2>
+            <p class="text-[#795548] text-lg">RM{{ coffee.price }}</p>
+            <button 
+              class="mt-4 px-4 py-2 bg-[#6d4c41] text-white rounded-full hover:bg-[#5d4037] transition"
+              @click="addToCart(coffee)"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Page -->
+    <div v-if="activeTab === 'order'" class="p-6">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4">🧾 Your Order</h2>
+
+        <div v-if="cart.length === 0" class="text-center py-10 bg-white rounded-lg shadow">
+          <p class="mb-4 text-lg">Your cart is empty</p>
+          <button 
+            class="px-4 py-2 bg-[#6d4c41] text-white rounded-full hover:bg-[#5d4037]"
+            @click="activeTab = 'menu'">
+            Browse Menu
+          </button>
+        </div>
+
+        <div v-else class="space-y-4">
+          <div 
+            v-for="item in cart" 
+            :key="item.name"
+            class="flex items-center justify-between bg-white p-4 rounded-lg shadow"
+          >
+            <div class="flex items-center gap-4">
+              <img :src="item.image" class="w-16 h-16 object-cover rounded-md" />
+              <div>
+                <p class="font-semibold">{{ item.name }}</p>
+                <p class="text-[#8d6e63]">RM{{ item.price }}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button @click="decreaseQuantity(item)" class="bg-[#d7ccc8] w-8 h-8 rounded-full">-</button>
+              <span>{{ item.quantity }}</span>
+              <button @click="increaseQuantity(item)" class="bg-[#d7ccc8] w-8 h-8 rounded-full">+</button>
+            </div>
+
+            <p class="font-semibold">RM{{ item.price * item.quantity }}</p>
+            <button @click="removeFromCart(item)" class="text-red-500 text-lg">✕</button>
+          </div>
+
+          <!-- Payment Section -->
+          <div class="bg-white p-6 rounded-lg shadow space-y-6 mt-6">
+            <div>
+              <h2 class="text-xl font-bold">💳 Payment Method</h2>
+              <div class="space-x-4 mt-2">
+                <label class="inline-flex items-center gap-2">
+                  <input type="radio" v-model="paymentMethod" value="cash"> Cash
+                </label>
+                <label class="inline-flex items-center gap-2">
+                  <input type="radio" v-model="paymentMethod" value="card"> Card
+                </label>
+                <label class="inline-flex items-center gap-2">
+                  <input type="radio" v-model="paymentMethod" value="ewallet"> E-Wallet
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <h2 class="text-xl font-bold">📋 Payment Details</h2>
+              <p>Subtotal: RM{{ totalAmount }}</p>
+              <p>Tax (6%): RM{{ (totalAmount * 0.06).toFixed(2) }}</p>
+              <p class="font-bold text-lg">Total: RM{{ (totalAmount * 1.06).toFixed(2) }}</p>
+            </div>
+
+            <div class="text-right">
+              <button 
+                class="px-6 py-3 bg-[#6d4c41] text-white rounded-full text-lg hover:bg-[#5d4037]"
+                @click="placeOrder">
+                Order Now - RM{{ (totalAmount * 1.06).toFixed(2) }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-    <!-- Menu Page -->
-    <div v-if="activeTab === 'menu'" class="menu-page">
-      <div class="search-bar">
-        <input type="text" placeholder="Search for coffee" v-model="searchQuery" />
-      </div>
-
-      <div class="coffee-grid">
-        <div class="coffee-box" v-for="coffee in filteredCoffeeList" :key="coffee.name">
-          <img :src="coffee.image" :alt="coffee.name">
-          <div class="coffee-info">
-            <p class="coffee-name">{{ coffee.name }}</p>
-            <p class="coffee-price">RM{{ coffee.price }}</p>
-          </div>
-          <button class="add-to-cart" @click="addToCart(coffee)">Add to Cart</button>
-        </div>
-      </div>
-    </div>
-
-  <!-- Order Page -->
-  <div v-if="activeTab === 'order'" class="order-page">
-      <div class="order-section">
-        <h2>Your Order</h2>
-        <div v-if="cart.length === 0" class="empty-cart">
-          <p>Your cart is empty</p>
-          <button @click="activeTab = 'menu'">Browse Menu</button>
-        </div>
-        <div v-else class="cart-items">
-          <div v-for="item in cart" :key="item.name" class="cart-item">
-            <img :src="item.image" :alt="item.name" class="cart-item-image">
-            <div class="cart-item-details">
-              <p class="cart-item-name">{{ item.name }}</p>
-              <p class="cart-item-price">RM{{ item.price }}</p>
-            </div>
-            <div class="quantity-controls">
-              <button @click="decreaseQuantity(item)">-</button>
-              <span>{{ item.quantity }}</span>
-              <button @click="increaseQuantity(item)">+</button>
-            </div>
-            <p class="item-total">RM{{ item.price * item.quantity }}</p>
-            <button class="remove-item" @click="removeFromCart(item)">✕</button>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="cart.length > 0" class="payment-section">
-        <div class="payment-methods">
-          <h2>Payment Methods</h2>
-          <div class="payment-options">
-            <label>
-              <input type="radio" v-model="paymentMethod" value="cash">
-              Cash
-            </label>
-            <label>
-              <input type="radio" v-model="paymentMethod" value="card">
-              Credit/Debit Card
-            </label>
-            <label>
-              <input type="radio" v-model="paymentMethod" value="ewallet">
-              E-Wallet
-            </label>
-          </div>
-        </div>
-
-        <div class="payment-details">
-          <h2>Payment Details</h2>
-          <p>Subtotal: RM{{ totalAmount }}</p>
-          <p>Tax (6%): RM{{ (totalAmount * 0.06).toFixed(2) }}</p>
-          <p class="total-amount">Total Amount: RM{{ (totalAmount * 1.06).toFixed(2) }}</p>
-        </div>
-
-        <div class="order-button">
-          <h2>RM{{ (totalAmount * 1.06).toFixed(2) }}</h2>
-          <button class="place-order" @click="placeOrder">Order Now</button>
-        </div>
-      </div>
-    </div>
-
 </template>
+
 
 <style scoped>
 .coffee-grid {
