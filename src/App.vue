@@ -1,30 +1,75 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <h1>Kopeace</h1>
+  <div class="coffee-grid">
+    <div 
+      class="coffee-box" 
+      v-for="(coffee, index) in coffees" 
+      :key="index" 
+      @click="handleClick(coffee.name)">
+      <img :src="coffee.img" :alt="coffee.name" />
+      <p class="coffee-name">{{ coffee.name }}</p>
+    </div>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
+<script>
+export default {
+  data() {
+    return {
+      coffees: [
+      { name: 'Espresso', img: 'https://i.pinimg.com/236x/bc/0c/ff/bc0cffc8b21c24b4b571e98b9ab5da12.jpg' },
+        { name: 'Latte', img: 'https://i.pinimg.com/474x/f0/65/5f/f0655f2737da76be9b4ac435c65e3d9b.jpg' },
+        { name: 'Mocha', img: 'https://i.pinimg.com/236x/33/44/2e/33442e58a74503c7cef4fc437a4ebc8e.jpg'},
+        { name: 'Cappuccino', img: 'https://i.pinimg.com/236x/1b/2d/77/1b2d77ef227d199b5246c13c40fedbd4.jpg' },
+        { name: 'Macchiato', img: 'https://i.pinimg.com/236x/7f/7c/0a/7f7c0a441577459d9a0a01ee28b59cc5.jpg' },
+        { name: 'Americano', img: 'https://i.pinimg.com/474x/6e/d0/a7/6ed0a708dc425ee2208548a5aea27aa9.jpg' }
+      ]
+    };
+  },
+  methods: {
+    handleClick(coffeeName) {
+      alert(`You clicked on ${coffeeName}!`);
+      // You can also navigate or handle logic here, like opening a detail page
+    }
+  }
+};
+</script>
+
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.coffee-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.coffee-box {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.coffee-box:hover {
+  transform: scale(1.05);
+}
+
+.coffee-box img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.coffee-name {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: bold;
 }
 </style>
