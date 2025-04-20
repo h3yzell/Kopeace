@@ -1,0 +1,35 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ] # Change to your main branch name
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+   
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+     
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22' # Choose your Node.js version
+        cache: 'npm'
+       
+    - name: Install dependencies
+      run: npm ci
+     
+    - name: Build project
+      run: npm run build
+     
+    - name: Deploy to server
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: 128.199.159.142
+        username: root
+        password: MFSH@1234A
+        port: 22
+        source: "dist/" # The source directory to transfer
+        target: "/var/www/html/kopeace" # The destination path on your server
